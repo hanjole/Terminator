@@ -1,8 +1,16 @@
 package han.androidterminator;
 
+import android.app.FragmentTransaction;
+import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,9 +20,49 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
+
+import han.androidterminator.utils.ImageLoaderUtils;
+import han.androidterminator.utils.ImageUtils;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    FragmentPhoto fragmentPhoto;
+    FragmentWebUrl fragmentH5Url;
+    FragmentWord fragmentWord;
+    FloatingActionButton fab;
+    PopupWindow photoPopup;
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == 1 && resultCode == RESULT_OK
+                && null != data){
+            Uri selectedImage = data.getData();
+            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+
+            Cursor cursor = getContentResolver().query(selectedImage,
+                    filePathColumn, null, null, null);
+            cursor.moveToFirst();
+
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            String picturePath = cursor.getString(columnIndex);
+            cursor.close();
+
+            if (!picturePath.startsWith("file://")) {
+                picturePath = "file://" + picturePath;
+            }
+            Log.i("picturePath",picturePath);
+            showPopup(picturePath);
+        }
+    }
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,12 +71,23 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                // 当前显示页面
+                switch (Constant.showF){
+                    case 1:
+                        chosePicture();
+                        break;
+                    case 2:
+
+                        break;
+                    case 3:
+
+                        break;
+                }
+
             }
         });
 
@@ -40,7 +99,59 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        if (fragmentPhoto == null) {
+            fragmentPhoto = new FragmentPhoto();
+        }
+        transaction.add(R.id.f_photo, fragmentPhoto, "fragmentPhoto");
+        transaction.show(fragmentPhoto);
+        transaction.commit();
+
     }
+
+    private void showPopup(final String path) {
+
+        final View inflaterView = this.getLayoutInflater().inflate(R.layout.popup_photo, null);
+        ImageView image = (ImageView) inflaterView.findViewById(R.id.popup_image);
+        ImageLoaderUtils.displayImage(path,image,false);
+
+        final EditText edit = (EditText) inflaterView.findViewById(R.id.popup_describe_et);
+        Button b1 = (Button) inflaterView.findViewById(R.id.popup_b1);
+        b1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                photoPopup.dismiss();
+            }
+        });
+        Button b2 = (Button) inflaterView.findViewById(R.id.popup_b2);
+        b2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                JsonUtils jsonUtils = new JsonUtils(MainActivity.this, Constant.SO_PHOTO);
+                jsonUtils.writeJson(path,edit.getText().toString());
+                Log.e("SO_PHOTO", jsonUtils.getArrayJson().toString());
+
+                if(fragmentPhoto!=null){
+                    fragmentPhoto.refreshRecycler();
+                }
+
+                photoPopup.dismiss();
+            }
+        });
+        photoPopup = new PopupWindow(inflaterView);
+        photoPopup.setOutsideTouchable(false);
+        photoPopup.setFocusable(true);
+        photoPopup.setBackgroundDrawable(new BitmapDrawable());
+        photoPopup.setWidth(700);
+        photoPopup.setHeight(1100);
+        photoPopup.showAtLocation(fab, Gravity.CENTER, 0, 0);
+
+
+
+
+    }
+
 
     @Override
     public void onBackPressed() {
@@ -82,12 +193,43 @@ public class MainActivity extends AppCompatActivity
 
         if (id == R.id.nav_camera) {
             // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
 
-        } else if (id == R.id.nav_slideshow) {
 
-        } else if (id == R.id.nav_manage) {
+        } else if (id == R.id.nav_photo) {
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            if (fragmentPhoto == null) {
+                fragmentPhoto = new FragmentPhoto();
+                transaction.add(R.id.f_photo, fragmentPhoto, "fragmentPhoto");
+            }
 
+            hideFragment(transaction);
+            transaction.show(fragmentPhoto);
+            transaction.commit();
+            Constant.showF = 1;
+
+        } else if (id == R.id.nav_word) {
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            if (fragmentWord == null) {
+                fragmentWord = new FragmentWord();
+                transaction.add(R.id.f_photo, fragmentWord, "fragmentWord");
+            }
+
+            hideFragment(transaction);
+            transaction.show(fragmentWord);
+            transaction.commit();
+            Constant.showF = 2;
+        } else if (id == R.id.nav_weburl) {
+
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            if (fragmentH5Url == null) {
+                fragmentH5Url = new FragmentWebUrl();
+                transaction.add(R.id.f_photo, fragmentH5Url, "fragmentH5Url");
+            }
+
+            hideFragment(transaction);
+            transaction.show(fragmentH5Url);
+            transaction.commit();
+            Constant.showF = 3;
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
@@ -97,5 +239,23 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    //隐藏所有的fragment
+    private void hideFragment(FragmentTransaction transaction) {
+        if (fragmentPhoto != null) {
+            transaction.hide(fragmentPhoto);
+        }
+        if (fragmentH5Url != null) {
+            transaction.hide(fragmentH5Url);
+        }
+        if (fragmentWord != null) {
+            transaction.hide(fragmentWord);
+        }
+    }
+
+    private void chosePicture() {
+        Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(i, 1);
     }
 }

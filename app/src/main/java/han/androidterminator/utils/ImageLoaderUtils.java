@@ -1,11 +1,9 @@
-package com.ailk.mobile.b2bclient.utils;
+package han.androidterminator.utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.util.Log;
 import android.widget.ImageView;
 
-import com.ailk.mobile.b2bclient.R;
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
 import com.nostra13.universalimageloader.cache.memory.impl.LruMemoryCache;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -18,6 +16,8 @@ import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingProgressListener;
 
 import java.io.File;
+
+import han.androidterminator.R;
 
 
 public class ImageLoaderUtils {
@@ -45,7 +45,7 @@ public class ImageLoaderUtils {
         if (animate) {
             if (null == optionsAnimate)
                 optionsAnimate = new DisplayImageOptions.Builder()
-                        .showImageForEmptyUri(R.drawable.defaultpic).showImageOnFail(R.drawable.defaultpic)
+                        .showImageForEmptyUri(R.drawable.a02_03).showImageOnFail(R.drawable.a02_03)
                         .cacheInMemory(true).cacheOnDisk(true).considerExifParams(true)
                         .bitmapConfig(Bitmap.Config.RGB_565).resetViewBeforeLoading(true)
                         .displayer(new FadeInBitmapDisplayer(600, true, false, false)).build();
@@ -53,7 +53,7 @@ public class ImageLoaderUtils {
         } else {
             if (null == options)
                 options = new DisplayImageOptions.Builder()
-                        .showImageForEmptyUri(R.drawable.defaultpic).showImageOnFail(R.drawable.defaultpic)
+                        .showImageForEmptyUri(R.drawable.a02_03).showImageOnFail(R.drawable.a02_03)
                         .cacheInMemory(true).cacheOnDisk(true).considerExifParams(true)
                         .bitmapConfig(Bitmap.Config.RGB_565).build();
             return options;

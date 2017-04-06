@@ -5,4 +5,10 @@ package han.androidterminator;
  */
 
 public class Constant {
+
+  static   int showF = 1;
+   static final String SO_PHOTO = "photo";
+
+
+
 }

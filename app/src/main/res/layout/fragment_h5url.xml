@@ -5,7 +5,7 @@
 
 
     <TextView
-        android:text=" 这是photo"
+        android:text=" 这是weburl"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 </LinearLayout>

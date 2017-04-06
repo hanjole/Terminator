@@ -1,6 +1,8 @@
-package han.filemanage;
+package han.androidterminator;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,51 +13,62 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
 
-import han.filemanage.object.FileObj;
+import han.androidterminator.obj.PhotoObj;
+import han.androidterminator.utils.ImageLoaderUtils;
+import han.androidterminator.utils.ImageUtils;
 
 /**
  * Created by hs on 2017/3/23.
  */
 
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemViewHolder> {
-    public void setFileObjList(List<FileObj> fileObjList) {
-        this.list = fileObjList;
-    }
+
     private OnItemClickListener mOnItemClickListener;
     private OnItemLongClickListener mOnItemLongClickListener;
-    private OnItemCheckBoxClickListener mOnItemCheckBoxClickListener;
-    List<FileObj> list;
+    List<PhotoObj> list;
+
+    public void setList(List<PhotoObj> objList) {
+
+        for (int i = 0; i < objList.size(); i++) {
+            for (int j = i + 1; j < objList.size(); j++) {
+                int intTemp = objList.get(i).getTime().compareToIgnoreCase(objList.get(j).getTime());
+                PhotoObj strTemp;
+                if (intTemp < 0) {
+
+                    Log.e("sssss",objList.get(i).getTime().toString()+"---------"+objList.get(j).getTime());
+
+                    strTemp = objList.get(j);
+                    objList.set(j,objList.get(i));
+                    objList.set(i,strTemp);
+                }
+            }
+        }
+        this.list = objList;
+    }
+
     View view;
     LayoutInflater inflater;
     Context context;
-    boolean isDuoxuan = false;
 
-    boolean isCheckBoxShow;
 
     //点击监听事件
 
-    public interface OnItemClickListener{
+    public interface OnItemClickListener {
         void onItemClick(View view, int position);
     }
 
-    public interface OnItemLongClickListener{
-        void onItemLongClick(View view,int position);
+    public interface OnItemLongClickListener {
+        void onItemLongClick(View view, int position);
     }
 
-
-    public interface OnItemCheckBoxClickListener{
-        void onItemCheckBoxClick(View view, int position,boolean f);
-    }
-
-    public void setOnItemCheckBoxClickListener(OnItemCheckBoxClickListener mOnItemCheckBoxClickListener){
-        this.mOnItemCheckBoxClickListener = mOnItemCheckBoxClickListener;
-    }
-
-    public void setOnItemClickListener(OnItemClickListener mOnItemClickListener){
+    public void setOnItemClickListener(OnItemClickListener mOnItemClickListener) {
         this.mOnItemClickListener = mOnItemClickListener;
     }
 
@@ -63,9 +76,10 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemVi
         this.mOnItemLongClickListener = mOnItemLongClickListener;
     }
 
-    public RecyclerAdapter(Context context) {
+    public RecyclerAdapter(Context context,List<PhotoObj> list) {
         inflater = LayoutInflater.from(context);
         this.context = context;
+        this.list = list;
     }
 
     @Override
@@ -75,57 +89,36 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemVi
 
     @Override
     public ItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        view  = inflater.inflate(R.layout.recycler_item,null);
+        view = inflater.inflate(R.layout.recycler_photo_item,parent ,false);
         return new ItemViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(final ItemViewHolder holder, final int position) {
-        holder.fileName.setText(list.get(position).fileName);
-        holder.fileCount.setText(list.get(position).fileCount==null?"":list.get(position).fileCount);
-        holder.fileTime.setText(list.get(position).fileTime);
+        holder.name.setText(list.get(position).getTitle());
+        ImageLoaderUtils.displayImage(list.get(position).getImg(),holder.image,false);
+
         //多选状态
-        if(isCheckBoxShow){
-            holder.checkBox.setVisibility(View.VISIBLE);
-            holder.right.setVisibility(View.GONE);
-            if(list.get(position).isSelect){
-                holder.checkBox.setChecked(true);
-            }else {
-                holder.checkBox.setChecked(false);
-            }
-        }else {
-            holder.checkBox.setVisibility(View.GONE);
-            holder.right.setVisibility(View.VISIBLE);
-        }
         //判断是否设置了监听器
-        if(mOnItemClickListener != null){
+        if (mOnItemClickListener != null) {
             //为ItemView设置监听器
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     int position = holder.getLayoutPosition(); // 1
-                    mOnItemClickListener.onItemClick(holder.itemView,position); // 2
+                    mOnItemClickListener.onItemClick(holder.itemView, position); // 2
                 }
             });
         }
-        if(mOnItemLongClickListener != null){
+        if (mOnItemLongClickListener != null) {
             holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
 
                     int position = holder.getLayoutPosition();
-                    mOnItemLongClickListener.onItemLongClick(holder.itemView,position);
+                    mOnItemLongClickListener.onItemLongClick(holder.itemView, position);
                     //返回true 表示消耗了事件 事件不会继续传递
                     return true;
-                }
-            });
-        }
-        if(mOnItemCheckBoxClickListener != null){
-            holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    int position = holder.getLayoutPosition();
-                    mOnItemCheckBoxClickListener.onItemCheckBoxClick(holder.checkBox,position,isChecked);
                 }
             });
         }
@@ -139,35 +132,17 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemVi
 
     class ItemViewHolder extends RecyclerView.ViewHolder {
         View itemView;
-        ImageView icon_image;
-        TextView fileName;
-        TextView fileCount;
-        TextView fileTime;
-        TextView right;
-        CheckBox checkBox;
+        ImageView image;
+        TextView name;
+
         public ItemViewHolder(View itemView) {
             super(itemView);
             this.itemView = itemView;
-            icon_image = (ImageView)itemView.findViewById(R.id.file_ico_iv);
-            fileName = (TextView)itemView.findViewById(R.id.file_name_tv);
-            fileCount = (TextView)itemView.findViewById(R.id.file_count_tv);
-            fileTime = (TextView)itemView.findViewById(R.id.file_time_tv);
-            right = (TextView)itemView.findViewById(R.id.file_right_tv);
-            checkBox = (CheckBox)itemView.findViewById(R.id.selects_rb);
-        }
-        public void setVisibility(boolean isVisible){
-            RecyclerView.LayoutParams param = (RecyclerView.LayoutParams)itemView.getLayoutParams();
-            if (isVisible){
-                param.height = LinearLayout.LayoutParams.WRAP_CONTENT;
-                param.width = LinearLayout.LayoutParams.MATCH_PARENT;
-                itemView.setVisibility(View.VISIBLE);
-            }else{
-                itemView.setVisibility(View.GONE);
-                param.height = 0;
-                param.width = 0;
-            }
-            itemView.setLayoutParams(param);
+            image = (ImageView) itemView.findViewById(R.id.recycler_item_photo);
+            name = (TextView) itemView.findViewById(R.id.recycler_item_describe);
         }
 
     }
+
+
 }
