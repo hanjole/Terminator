@@ -17,10 +17,10 @@
     <color name="grey_mask_1a">#1A000000</color> <!-- chat system text bg -->
     <color name="red_e0">#e0fc4f47</color> <!-- waterfall top toolbar -->
     <color name="white_e0">#e0ffffff</color> <!-- waterfall bottom toolbar -->
-    <color name="atred">#fc4f47</color>
-    <color name="atblue">#00b7ee</color>
-    <color name="atgreen">#42c553</color>
-    <color name="atgrey">#313131</color>
+    <color name="red">#fc4f47</color>
+    <color name="blue">#00b7ee</color>
+    <color name="green">#42c553</color>
+    <color name="grey">#313131</color>
     <color name="blue_bad">#172a88</color>
     <color name="red_meet">#f10800</color>
 </resources>

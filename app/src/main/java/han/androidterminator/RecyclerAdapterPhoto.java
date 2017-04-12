@@ -1,34 +1,24 @@
 package han.androidterminator;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.List;
 
 import han.androidterminator.obj.PhotoObj;
 import han.androidterminator.utils.ImageLoaderUtils;
-import han.androidterminator.utils.ImageUtils;
 
 /**
  * Created by hs on 2017/3/23.
  */
 
-public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemViewHolder> {
+public class RecyclerAdapterPhoto extends RecyclerView.Adapter<RecyclerAdapterPhoto.ItemViewHolder> {
 
     private OnItemClickListener mOnItemClickListener;
     private OnItemLongClickListener mOnItemLongClickListener;
@@ -76,7 +66,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemVi
         this.mOnItemLongClickListener = mOnItemLongClickListener;
     }
 
-    public RecyclerAdapter(Context context,List<PhotoObj> list) {
+    public RecyclerAdapterPhoto(Context context, List<PhotoObj> list) {
         inflater = LayoutInflater.from(context);
         this.context = context;
         this.list = list;

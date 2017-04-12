@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/grey_mask_4c"
+    android:orientation="vertical"
+    android:layout_margin="12dp"
+
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/word_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="hello"
+            android:textColor="@color/blue"
+            android:textSize="19sp" />
+
+        <ImageView
+            android:id="@+id/word_voice_iv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="10dp"
+            android:src="@drawable/voice_left" />
+    </LinearLayout>
+
+
+    <TextView
+        android:id="@+id/word_soundmark_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="12dp"
+        android:text="hello"
+        android:textColor="@color/blue"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/word_translation_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="12dp"
+        android:layout_marginTop="8dp"
+        android:text="你好"
+        android:textColor="@color/blue"
+        android:textSize="16sp" />
+
+
+</LinearLayout>

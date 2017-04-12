@@ -22,13 +22,15 @@ public class JsonUtils {
     List<JSONArray> JSONArrayList;
     SharedPreferences preferences;
     JSONArray array;
+    String type;
 
     public JsonUtils(Activity activity, String type) {
         mActivity = activity;
+        this.type = type;
         preferences = mActivity.getSharedPreferences(type, 1);
     }
 
-    public void readJson(String path, String name) {
+    public void photoReadJson(String path, String name) {
         try {
             JSONArray array = new JSONArray();
             if (JSONArrayList == null) {
@@ -50,16 +52,13 @@ public class JsonUtils {
     }
 
 
-    public void writeJson(String path, String name) {
-
+    public void photoWriteJson(String path, String name) {
         try {
-
             if (preferences.getString("jsonData", null) == null) {
                 array = new JSONArray();
             } else {
                 array = new JSONArray(preferences.getString("jsonData", null));
             }
-
 
             //  {    }
 //            JSONArrayList.get(JSONArrayList.size()).
@@ -82,6 +81,38 @@ public class JsonUtils {
         }
 
     }
+
+    public void wordWriteJson(String name, String soundmark,String translation) {
+
+        try {
+            if (preferences.getString("jsonData", null) == null) {
+                array = new JSONArray();
+            } else {
+                array = new JSONArray(preferences.getString("jsonData", null));
+            }
+
+            //  {    }
+//            JSONArrayList.get(JSONArrayList.size()).
+            JSONObject j = new JSONObject();
+            j.put("name", name);
+            j.put("soundmark", soundmark);
+            j.put("translation", translation);
+            SimpleDateFormat formatter = new SimpleDateFormat("yy/MM/dd HH:mm:ss");
+            j.put("date", formatter.format(new Date().getTime()));
+
+            array.put(array.length(), j);
+
+            SharedPreferences.Editor edit = preferences.edit();
+            edit.putString("jsonData", array.toString());
+            edit.apply();
+//            Log.e("preferences", preferences.getAll().toString());
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 
 
     public JSONArray getArrayJson() {

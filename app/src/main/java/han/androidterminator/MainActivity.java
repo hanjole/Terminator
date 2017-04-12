@@ -2,6 +2,7 @@ package han.androidterminator;
 
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity
                 picturePath = "file://" + picturePath;
             }
             Log.i("picturePath",picturePath);
-            showPopup(picturePath);
+            showPopupPhoto(picturePath);
         }
     }
 
@@ -70,7 +71,13 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+//        JsonUtils jsonUtils = new JsonUtils(MainActivity.this,Constant.SO_WORD);
+//        SharedPreferences.Editor edits =  jsonUtils.preferences.edit();
+//        if(jsonUtils.getArrayJson()!=null){
+//            Log.e("SO_WORD", jsonUtils.getArrayJson().toString());
+//        }
+//        edits.clear();
+//        edits.apply();
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -81,7 +88,7 @@ public class MainActivity extends AppCompatActivity
                         chosePicture();
                         break;
                     case 2:
-
+                        showPopupWord();
                         break;
                     case 3:
 
@@ -110,7 +117,14 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    private void showPopup(final String path) {
+    private void showPopupWord() {
+
+
+
+    }
+
+
+    private void showPopupPhoto(final String path) {
 
         final View inflaterView = this.getLayoutInflater().inflate(R.layout.popup_photo, null);
         ImageView image = (ImageView) inflaterView.findViewById(R.id.popup_image);
@@ -129,7 +143,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 JsonUtils jsonUtils = new JsonUtils(MainActivity.this, Constant.SO_PHOTO);
-                jsonUtils.writeJson(path,edit.getText().toString());
+                jsonUtils.photoWriteJson(path,edit.getText().toString());
                 Log.e("SO_PHOTO", jsonUtils.getArrayJson().toString());
 
                 if(fragmentPhoto!=null){
