@@ -20,6 +20,9 @@ import han.androidterminator.utils.ImageLoaderUtils;
 
 public class RecyclerAdapterWord extends BaseRecyclerAdapter {
 
+
+    boolean deleteShow = false;
+
     List<WordObj> list;
     public void setList(List objList) {
         super.setList(objList);
@@ -59,9 +62,9 @@ public class RecyclerAdapterWord extends BaseRecyclerAdapter {
 
 
     @Override
-    public void onBindViewHolder(BaseRecyclerAdapter.ItemViewHolder holder, int position) {
+    public void onBindViewHolder(BaseRecyclerAdapter.ItemViewHolder holder, final int position) {
         super.onBindViewHolder(holder, position);
-        ItemViewHolders holders = (ItemViewHolders) holder;
+        final ItemViewHolders holders = (ItemViewHolders) holder;
 
 
         if(list.get(position)!=null&&list.get(position).getName()!=null){
@@ -70,13 +73,42 @@ public class RecyclerAdapterWord extends BaseRecyclerAdapter {
             holders.translation.setText(list.get(position).getTranslation());
 
         }
+        if(deleteShow){
+
+            holders.delete.setVisibility(View.VISIBLE);
+            holders.delete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+
+                    Log.e("remove","getAdapterPosition"+holders.getAdapterPosition()+"-----"+position);
+                    list.remove(holders.getAdapterPosition());
+                    notifyItemRemoved(position);
+//                    list.remove(position);
+//                    notifyDataSetChanged();
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            long startTime =   System.currentTimeMillis();
+                            new JsonUtils(Constant.SO_WORD).remove(holders.name.getText().toString());
+                            System.out.println(System.currentTimeMillis()-startTime);
+                        }
+                    }).start();
+                }
+            });
+        }else {
+            holders.delete.setVisibility(View.GONE);
+        }
+
+
+
 
     }
 
 
     @Override
     public int getItemCount() {
-        Log.e("getItemCount",super.getItemCount()+"");
+//        Log.e("getItemCount",super.getItemCount()+"");
         return super.getItemCount();
     }
 
@@ -86,6 +118,7 @@ public class RecyclerAdapterWord extends BaseRecyclerAdapter {
         TextView name;
         TextView soundmark;
         TextView translation;
+        TextView delete;
         public ItemViewHolders(View itemView) {
             super(itemView);
             this.itemView = itemView;
@@ -93,6 +126,7 @@ public class RecyclerAdapterWord extends BaseRecyclerAdapter {
             name = (TextView) itemView.findViewById(R.id.word_tv);
             soundmark = (TextView) itemView.findViewById(R.id.word_soundmark_tv);
             translation = (TextView) itemView.findViewById(R.id.word_translation_tv);
+            delete = (TextView) itemView.findViewById(R.id.delete);
         }
 
     }

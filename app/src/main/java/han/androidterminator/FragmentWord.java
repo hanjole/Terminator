@@ -44,7 +44,9 @@ public class FragmentWord extends Fragment {
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
         adapter = new RecyclerAdapterWord(getActivity(), null);
+        adapter.setOnItemClickListener(onItemClickListener);
 
+        adapter.setOnItemLongClickListener(onItemLongClickListener);
         recyclerView.setHasFixedSize(true);
         recyclerView.setAdapter(adapter);
         adapter.setOnItemClickListener(null);
@@ -57,6 +59,23 @@ public class FragmentWord extends Fragment {
         refreshRecycler();
         return v;
     }
+    BaseRecyclerAdapter.OnItemLongClickListener onItemLongClickListener = new BaseRecyclerAdapter.OnItemLongClickListener() {
+        @Override
+        public void onItemLongClick(View view, int position) {
+            adapter.deleteShow = true;
+            adapter.notifyDataSetChanged();
+
+        }
+    };
+
+    BaseRecyclerAdapter.OnItemClickListener onItemClickListener = new BaseRecyclerAdapter.OnItemClickListener() {
+        @Override
+        public void onItemClick(View view, int position) {
+
+
+
+        }
+    };
 
     public void refreshRecycler() {
         preferences = getActivity().getSharedPreferences(Constant.SO_WORD, 1);
@@ -79,6 +98,7 @@ public class FragmentWord extends Fragment {
                         photo.setName(json.optString("name"));
                         photo.setSoundmark(json.optString("soundmark"));
                         photo.setTranslation(json.optString("translation"));
+                        photo.setDate(json.optString("date"));
                         list.add(photo);
 
                     } catch (JSONException e) {
@@ -94,12 +114,42 @@ public class FragmentWord extends Fragment {
 
         }
 
-//        sort(list);
+        sort(list);
         adapter.setList(list);
         for (int i = 0; i < list.size(); i++) {
-            Log.e("list", list.get(i).getName().toString());
+            Log.e("list",
+                    (list.get(i).getName()==null?"":list.get(i).getName().toString())
+                    +"---"
+                    +(list.get(i).getSoundmark()==null?"":list.get(i).getSoundmark().toString())
+                    +"---"
+                    +(list.get(i).getTranslation()==null?"":list.get(i).getTranslation().toString())
+                    +"---"
+                    +(list.get(i).getDate()==null?"":list.get(i).getDate().toString())
+                    +"---"
+                    +(list.get(i).getVoice()==null?"":list.get(i).getVoice().toString())
+            );
         }
 
+    }
+
+
+    // 根据最后添加时间排序
+    private void sort(List<WordObj> objList) {
+        for (int i = 0; i < objList.size(); i++) {
+            for (int j = i + 1; j < objList.size(); j++) {
+                if (objList.get(i).getDate()==null){
+
+                    continue;
+                }
+                int intTemp = objList.get(i).getDate().compareToIgnoreCase(objList.get(j).getDate());
+                WordObj strTemp;
+                if (intTemp < 0) {
+                    strTemp = objList.get(j);
+                    objList.set(j, objList.get(i));
+                    objList.set(i, strTemp);
+                }
+            }
+        }
     }
 }
 

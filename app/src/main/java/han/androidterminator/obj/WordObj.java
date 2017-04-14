@@ -9,6 +9,25 @@ public class WordObj {
 
     String name;
     String soundmark;
+    String translation;
+    String voice;
+    private String date;
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    public String getVoice() {
+        return voice;
+    }
+
+    public void setVoice(String voice) {
+        this.voice = voice;
+    }
 
     public void setName(String name) {
         this.name = name;
@@ -34,5 +53,5 @@ public class WordObj {
         return translation;
     }
 
-    String translation;
+
 }

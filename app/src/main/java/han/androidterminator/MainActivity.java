@@ -7,9 +7,12 @@ import android.database.Cursor;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -26,9 +29,23 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import han.androidterminator.utils.ImageLoaderUtils;
 import han.androidterminator.utils.ImageUtils;
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -37,15 +54,16 @@ public class MainActivity extends AppCompatActivity
     FragmentWebUrl fragmentH5Url;
     FragmentWord fragmentWord;
     FloatingActionButton fab;
-    PopupWindow photoPopup;
+    PopupWindow photoPopup, wordPhoto;
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == 1 && resultCode == RESULT_OK
-                && null != data){
+        if (requestCode == 1 && resultCode == RESULT_OK
+                && null != data) {
             Uri selectedImage = data.getData();
-            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+            String[] filePathColumn = {MediaStore.Images.Media.DATA};
 
             Cursor cursor = getContentResolver().query(selectedImage,
                     filePathColumn, null, null, null);
@@ -58,11 +76,10 @@ public class MainActivity extends AppCompatActivity
             if (!picturePath.startsWith("file://")) {
                 picturePath = "file://" + picturePath;
             }
-            Log.i("picturePath",picturePath);
+            Log.i("picturePath", picturePath);
             showPopupPhoto(picturePath);
         }
     }
-
 
 
     @Override
@@ -83,7 +100,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 // 当前显示页面
-                switch (Constant.showF){
+                switch (Constant.showF) {
                     case 1:
                         chosePicture();
                         break;
@@ -118,17 +135,148 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void showPopupWord() {
+        final View inflaterView = this.getLayoutInflater().inflate(R.layout.popup_word, null);
 
+        final EditText wordName = (EditText) inflaterView.findViewById(R.id.edit_word_name);
+        final TextView soundmark = (TextView) inflaterView.findViewById(R.id.word_soundmark_tv);
+        final EditText wordTranslation = (EditText) inflaterView.findViewById(R.id.edit_word_translation);
+        Button importTranslation = (Button) inflaterView.findViewById(R.id.b_import);
+        Button add = (Button) inflaterView.findViewById(R.id.b_add);
+        importTranslation.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+
+
+                if (!wordName.getText().toString().isEmpty()) {
+
+                    if (!match("^[A-Za-z]+$", wordName.getText().toString())) {
+                        Toast.makeText(MainActivity.this, "只能输入英文", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+
+                    getTranslationAndSoundmark(wordName.getText().toString());
+                } else {
+                    Toast.makeText(MainActivity.this, "请输入需要翻译的名称", Toast.LENGTH_SHORT).show();
+                }
+
+//                wordPhoto.dismiss();
+            }
+
+            private void getTranslationAndSoundmark(String name) {
+
+
+                OkHttpUtils.get()
+                        .url("http://fanyi.youdao.com/openapi.do?keyfrom=myTestVoiceV&key=1990392990&type=data&doctype=json&version=1.1&q=" + name)
+                        .build()
+                        .execute(new StringCallback() {
+                            @Override
+                            public void onError(Call call, Exception e, int id) {
+
+                            }
+
+                            @Override
+                            public void onResponse(String response, int id) {
+
+
+                                try {
+                                    Log.i("onResponse", response);
+
+                                    JSONObject jsonObj = new JSONObject(response);
+                                    JSONObject basicObj = jsonObj.optJSONObject("basic");
+                                    if (basicObj == null) {
+                                        MaApplication.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                soundmark.setText("");
+                                                wordTranslation.setText("");
+                                            }
+                                        });
+                                        return;
+
+                                    }
+                                    String explains = "";
+                                    String phonetic = "";
+                                    phonetic = basicObj.optString("uk-phonetic");
+                                    JSONArray explainsArray = basicObj.getJSONArray("explains");
+                                    if (explainsArray.get(0) != null) {
+                                        explains = explainsArray.get(0).toString();
+                                    }
+
+
+                                    final String finalExplains = explains;
+                                    final String finalPhonetic = phonetic;
+                                    new Handler().post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            soundmark.setText(finalPhonetic);
+                                            wordTranslation.setText(finalExplains);
+                                        }
+                                    });
+
+                                } catch (JSONException e) {
+                                    System.out.println("youdaoJson解析失败");
+                                    e.printStackTrace();
+                                }
+
+                            }
+                        });
+
+            }
+        });
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                JsonUtils jsonUtils = new JsonUtils(Constant.SO_WORD);
+                jsonUtils.wordWriteJson(
+                        wordName.getText() == null ? "" : wordName.getText().toString(),
+                        soundmark.getText() == null ? "" : soundmark.getText().toString(),
+                        wordTranslation.getText() == null ? "" : wordTranslation.getText().toString()
+                );
+
+//                Log.e("SO_WORD", jsonUtils.getArrayJson().toString());
+
+                if (fragmentWord != null) {
+                    fragmentWord.refreshRecycler();
+                }
+
+
+                wordPhoto.dismiss();
+            }
+        });
+        wordPhoto = new PopupWindow(inflaterView);
+        wordPhoto.setOutsideTouchable(false);
+        wordPhoto.setFocusable(true);
+        wordPhoto.setWidth(700);
+        wordPhoto.setHeight(1100);
+        wordPhoto.showAtLocation(fab, Gravity.CENTER, 0, 0);
 
 
     }
+
+    private static boolean match(String regex, String str) {
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(str);
+        return matcher.matches();
+    }
+
+    View.OnClickListener clickListenerImport = new View.OnClickListener() {
+
+        @Override
+        public void onClick(View v) {
+
+
+            wordPhoto.dismiss();
+        }
+    };
 
 
     private void showPopupPhoto(final String path) {
 
         final View inflaterView = this.getLayoutInflater().inflate(R.layout.popup_photo, null);
         ImageView image = (ImageView) inflaterView.findViewById(R.id.popup_image);
-        ImageLoaderUtils.displayImage(path,image,false);
+        ImageLoaderUtils.displayImage(path, image, false);
 
         final EditText edit = (EditText) inflaterView.findViewById(R.id.popup_describe_et);
         Button b1 = (Button) inflaterView.findViewById(R.id.popup_b1);
@@ -143,10 +291,10 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 JsonUtils jsonUtils = new JsonUtils(MainActivity.this, Constant.SO_PHOTO);
-                jsonUtils.photoWriteJson(path,edit.getText().toString());
+                jsonUtils.photoWriteJson(path, edit.getText().toString());
                 Log.e("SO_PHOTO", jsonUtils.getArrayJson().toString());
 
-                if(fragmentPhoto!=null){
+                if (fragmentPhoto != null) {
                     fragmentPhoto.refreshRecycler();
                 }
 
@@ -160,8 +308,6 @@ public class MainActivity extends AppCompatActivity
         photoPopup.setWidth(700);
         photoPopup.setHeight(1100);
         photoPopup.showAtLocation(fab, Gravity.CENTER, 0, 0);
-
-
 
 
     }
