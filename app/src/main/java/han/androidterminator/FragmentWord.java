@@ -1,8 +1,12 @@
 package han.androidterminator;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.storage.StorageManager;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -12,15 +16,25 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.Callback;
+import com.zhy.http.okhttp.callback.FileCallBack;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import han.androidterminator.obj.PhotoObj;
 import han.androidterminator.obj.WordObj;
+import han.androidterminator.service.AudioService;
+import han.androidterminator.utils.VoiceUtils;
+import okhttp3.Call;
+import okhttp3.Response;
 
 /**
  * Created by hs on 2017/4/1.
@@ -33,6 +47,9 @@ public class FragmentWord extends Fragment {
     RecyclerView recyclerView;
     SharedPreferences preferences;
     RecyclerAdapterWord adapter;
+//    private MediaPlayer mp;
+    private String query;
+
 
     @Nullable
     @Override
@@ -49,7 +66,6 @@ public class FragmentWord extends Fragment {
         adapter.setOnItemLongClickListener(onItemLongClickListener);
         recyclerView.setHasFixedSize(true);
         recyclerView.setAdapter(adapter);
-        adapter.setOnItemClickListener(null);
 //
 //        JsonUtils jsonUtils = new JsonUtils(getActivity(),Constant.SO_WORD);
 //        jsonUtils.wordWriteJson("aa","saaaaa","aaaaaaa");
@@ -62,6 +78,11 @@ public class FragmentWord extends Fragment {
     BaseRecyclerAdapter.OnItemLongClickListener onItemLongClickListener = new BaseRecyclerAdapter.OnItemLongClickListener() {
         @Override
         public void onItemLongClick(View view, int position) {
+
+            if( adapter.deleteShow==true){
+                return;
+            }
+            Log.e("OnItemLongClickListener",position +"onItemClickListener");
             adapter.deleteShow = true;
             adapter.notifyDataSetChanged();
 
@@ -71,6 +92,49 @@ public class FragmentWord extends Fragment {
     BaseRecyclerAdapter.OnItemClickListener onItemClickListener = new BaseRecyclerAdapter.OnItemClickListener() {
         @Override
         public void onItemClick(View view, int position) {
+            query = adapter.list.get(position).getName();
+            String[] info =   VoiceUtils.getOutputMediaFile(query);
+
+            if(VoiceUtils.isMediaFile(query)){
+                String path = info[0]+info[1];
+                //如果本地存在
+                Log.e("isMediaFile",info[0]+info[1]);
+                Intent intent = new Intent(getActivity(),AudioService.class);
+                intent.putExtra("path",path);
+                getActivity().startService(intent);
+            }else {
+
+                OkHttpUtils.get()
+                        .url("http://dict.youdao.com/dictvoice?audio=" + query)
+                        .build()
+                        .execute(new FileCallBack(info[0],info[1]) {
+                            @Override
+                            public File saveFile(Response response, int id) throws IOException {
+                                return super.saveFile(response, id);
+                            }
+
+                            @Override
+                            public void onError(Call call, Exception e, int id) {
+
+                            }
+
+                            @Override
+                            public void onResponse(File response, int id) {
+                                Intent intent = new Intent(getActivity(),AudioService.class);
+                                intent.putExtra("path",response.toString());
+                                getActivity().startService(intent);
+                            }
+                        });
+            }
+
+//            Uri location = Uri.parse("http://dict.youdao.com/dictvoice?audio=" + adapter.list.get(position));
+            System.out.println("http://dict.youdao.com/dictvoice?audio=" + adapter.list.get(position).getName());
+
+
+
+//            mp.start();
+
+
 
 
 

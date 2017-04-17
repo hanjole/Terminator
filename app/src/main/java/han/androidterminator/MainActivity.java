@@ -55,6 +55,9 @@ public class MainActivity extends AppCompatActivity
     FragmentWord fragmentWord;
     FloatingActionButton fab;
     PopupWindow photoPopup, wordPhoto;
+    final int PAGE_WORD = 2;
+    final int PAGE_URL = 3;
+    final int PAGE_PHOTO = 1;
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -101,13 +104,13 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
                 // 当前显示页面
                 switch (Constant.showF) {
-                    case 1:
+                    case PAGE_PHOTO:
                         chosePicture();
                         break;
-                    case 2:
+                    case PAGE_WORD:
                         showPopupWord();
                         break;
-                    case 3:
+                    case PAGE_URL:
 
                         break;
                 }
@@ -319,7 +322,29 @@ public class MainActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+
+            switch (Constant.showF) {
+                case PAGE_PHOTO:
+                    super.onBackPressed();
+                    break;
+                case PAGE_WORD:
+                    if (fragmentWord.adapter.deleteShow) {
+                        fragmentWord.adapter.deleteShow = false;
+                        fragmentWord.adapter.notifyDataSetChanged();
+                    } else
+                        super.onBackPressed();
+                    break;
+
+                case PAGE_URL:
+                    super.onBackPressed();
+                    break;
+                default:
+
+                    super.onBackPressed();
+
+
+            }
+//            super.onBackPressed();
         }
     }
 
@@ -365,7 +390,7 @@ public class MainActivity extends AppCompatActivity
             hideFragment(transaction);
             transaction.show(fragmentPhoto);
             transaction.commit();
-            Constant.showF = 1;
+            Constant.showF = PAGE_PHOTO;
 
         } else if (id == R.id.nav_word) {
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
@@ -377,7 +402,7 @@ public class MainActivity extends AppCompatActivity
             hideFragment(transaction);
             transaction.show(fragmentWord);
             transaction.commit();
-            Constant.showF = 2;
+            Constant.showF = PAGE_WORD;
         } else if (id == R.id.nav_weburl) {
 
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
@@ -389,7 +414,7 @@ public class MainActivity extends AppCompatActivity
             hideFragment(transaction);
             transaction.show(fragmentH5Url);
             transaction.commit();
-            Constant.showF = 3;
+            Constant.showF = PAGE_URL;
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
