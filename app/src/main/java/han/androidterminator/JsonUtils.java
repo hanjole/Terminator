@@ -120,6 +120,36 @@ public class JsonUtils {
 
     }
 
+    public void collectionWriteJson(String name, String url) {
+
+        try {
+            if (preferences.getString("jsonData", null) == null) {
+                array = new JSONArray();
+            } else {
+                array = new JSONArray(preferences.getString("jsonData", null));
+            }
+
+            //  {    }
+//            JSONArrayList.get(JSONArrayList.size()).
+            JSONObject j = new JSONObject();
+            j.put("name", name == null ? "" : name);
+            j.put("soundmark", url == null ? "" : url);
+            SimpleDateFormat formatter = new SimpleDateFormat("yy/MM/dd HH:mm:ss");
+            j.put("date", formatter.format(new Date().getTime()));
+
+            array.put(array.length(), j);
+
+            SharedPreferences.Editor edit = preferences.edit();
+            edit.putString("jsonData", array.toString());
+            edit.apply();
+            Log.e("preferences", preferences.getAll().toString());
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     public  boolean remove(String name) {
 
         if(name==null){

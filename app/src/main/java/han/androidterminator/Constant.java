@@ -9,6 +9,6 @@ public class Constant {
   static   int showF = 1;
    static final String SO_PHOTO = "photo";
     static final String SO_WORD = "word";
-
+    static final String SO_URL = "collect";
 
 }

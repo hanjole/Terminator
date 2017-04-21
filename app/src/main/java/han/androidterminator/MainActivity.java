@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity
     FragmentWebUrl fragmentH5Url;
     FragmentWord fragmentWord;
     FloatingActionButton fab;
-    PopupWindow photoPopup, wordPhoto;
+    PopupWindow photoPopup, wordPhoto,collection;
     final int PAGE_WORD = 2;
     final int PAGE_URL = 3;
     final int PAGE_PHOTO = 1;
@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity
                         showPopupWord();
                         break;
                     case PAGE_URL:
-
+                        showPopupCollection();
                         break;
                 }
 
@@ -134,6 +134,33 @@ public class MainActivity extends AppCompatActivity
         transaction.add(R.id.f_photo, fragmentPhoto, "fragmentPhoto");
         transaction.show(fragmentPhoto);
         transaction.commit();
+
+    }
+
+    private void showPopupCollection() {
+        final View inflaterView = this.getLayoutInflater().inflate(R.layout.popup_collection, null);
+
+        final EditText name = (EditText) inflaterView.findViewById(R.id.edit_collection_name);
+        final EditText url = (EditText) inflaterView.findViewById(R.id.edit_collection_url);
+        Button add = (Button) inflaterView.findViewById(R.id.b_add);
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                JsonUtils jsonUtils = new JsonUtils(Constant.SO_URL);
+                jsonUtils.collectionWriteJson(name.getText()+"",url.getText()+"");
+                collection.dismiss();
+                fragmentH5Url.refreshRecycler();
+
+            }
+        });
+
+        collection = new PopupWindow(inflaterView);
+        collection.setOutsideTouchable(false);
+        collection.setFocusable(true);
+        collection.setWidth(700);
+        collection.setHeight(1100);
+        collection.showAtLocation(fab, Gravity.CENTER, 0, 0);
+
 
     }
 
